@@ -28,7 +28,7 @@ import java.util.List;
 @AllArgsConstructor
 public class DocumentBuilderFactoryFixVisitor<P> extends JavaIsoVisitor<P> {
 
-    static final MethodMatcher DBF_NEW_INSTANCE = new MethodMatcher("javax.xml.parsers.DocumentBuilderFactory newInstance*()");
+    static final InvocationMatcher DBF_NEW_INSTANCE = InvocationMatcher.fromMethodMatcher(new MethodMatcher("javax.xml.parsers.DocumentBuilderFactory newInstance*()"));
     static final InvocationMatcher DBF_PARSER_SET_FEATURE = InvocationMatcher.fromMethodMatcher(new MethodMatcher("javax.xml.parsers.DocumentBuilderFactory setFeature(java.lang.String, boolean)"));
 
     private final ExternalDTDAccumulator acc;

@@ -1,16 +1,12 @@
 package org.openrewrite.java.security.xml;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.Set;
 import java.util.TreeSet;
 
-public class DBFInsertPropertyStatementVisitor<P> extends JavaIsoVisitor<P> {
+public class DBFInsertPropertyStatementVisitor<P> extends XmlFactoryInsertVisitor<P> {
 
     private final J.Block scope;
     private final StringBuilder propertyTemplate = new StringBuilder();
@@ -32,6 +28,12 @@ public class DBFInsertPropertyStatementVisitor<P> extends JavaIsoVisitor<P> {
             boolean needsDisableParameterEntities,
             boolean needsLoadExternalDTD
     ) {
+        super(
+                scope,
+                dbfVariableName,
+                DocumentBuilderFactoryFixVisitor.DBF_NEW_INSTANCE,
+                DocumentBuilderFactoryFixVisitor.DBF_PARSER_SET_FEATURE
+        );
 
         this.scope = scope;
         this.dbfVariableName = dbfVariableName;
@@ -102,43 +104,14 @@ public class DBFInsertPropertyStatementVisitor<P> extends JavaIsoVisitor<P> {
     @Override
     public J.Block visitBlock(J.Block block, P ctx) {
         J.Block b = super.visitBlock(block, ctx);
-        Statement beforeStatement = null;
         if (b.isScope(scope)) {
-            for (int i = b.getStatements().size() - 2; i > -1; i--) {
-                Statement st = b.getStatements().get(i);
-                Statement stBefore = b.getStatements().get(i + 1);
-                if (st instanceof J.MethodInvocation) {
-                    J.MethodInvocation m = (J.MethodInvocation) st;
-                    if (DocumentBuilderFactoryFixVisitor.DBF_NEW_INSTANCE.matches(m) || DocumentBuilderFactoryFixVisitor.DBF_PARSER_SET_FEATURE.matches(m)) {
-                        beforeStatement = stBefore;
-                    }
-                } else if (st instanceof J.VariableDeclarations) {
-                    J.VariableDeclarations vd = (J.VariableDeclarations) st;
-                    if (vd.getVariables().get(0).getInitializer() instanceof J.MethodInvocation) {
-                        J.MethodInvocation m = (J.MethodInvocation) vd.getVariables().get(0).getInitializer();
-                        if (m != null && DocumentBuilderFactoryFixVisitor.DBF_NEW_INSTANCE.matches(m)) {
-                            beforeStatement = stBefore;
-                        }
-                    }
-                }
-            }
-
+            Statement beforeStatement = getInsertStatement(b);
             generateSetFeature(disallowDoctypes);
-
-            if (getCursor().getParent() != null && getCursor().getParent().getValue() instanceof J.ClassDeclaration) {
-                propertyTemplate.insert(0, "{\n").append("}");
-            }
-            JavaCoordinates insertCoordinates = beforeStatement != null ?
-                    beforeStatement.getCoordinates().before() :
-                    b.getCoordinates().lastStatement();
-            System.out.println(propertyTemplate.toString());
-            b = JavaTemplate
-                    .builder(propertyTemplate.toString())
-                    .imports(imports.toArray(new String[0]))
-                    .contextSensitive()
-                    .build()
-                    .apply(new Cursor(getCursor().getParent(), b), insertCoordinates);
-            imports.forEach(this::maybeAddImport);
+            return updateBlock(
+                    b,
+                    beforeStatement,
+                    imports
+            );
         }
         return b;
     }
