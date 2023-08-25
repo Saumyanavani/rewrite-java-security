@@ -90,13 +90,14 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
     }
 
     @Test
-    @Disabled("Temporarily")
+//    @Disabled("Temporarily")
     void factoryIsVulnerable() {
         //language=java
         rewriteRun(
           java(
             """
               import javax.xml.parsers.DocumentBuilderFactory;
+              import javax.xml.parsers.DocumentBuilder;
               import javax.xml.parsers.ParserConfigurationException; // catching unsupported features
               import javax.xml.XMLConstants;
               
@@ -107,11 +108,13 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
               """,
             """
               import javax.xml.parsers.DocumentBuilderFactory;
+              import javax.xml.parsers.DocumentBuilder;
               import javax.xml.parsers.ParserConfigurationException; // catching unsupported features
               import javax.xml.XMLConstants;
               
               class myDBFReader {
                   DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                  
                   {
                       String FEATURE = "http://apache.org/xml/features/disallow-doctype-decl";
                       try {
@@ -259,7 +262,7 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
     }
 
     @Test
-    @Disabled("Temporarily")
+//    @Disabled("Temporarily")
     void factoryIsVulnerableWithPublicAndSystemIdPresent() {
         rewriteRun(
           xml(
@@ -282,6 +285,7 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
           java(
             """
               import javax.xml.parsers.DocumentBuilderFactory;
+              import javax.xml.parsers.DocumentBuilder;
               import javax.xml.parsers.ParserConfigurationException; // catching unsupported features
               import javax.xml.XMLConstants;
               
@@ -291,12 +295,14 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
               }
               """,
             """
-              import org.xml.sax.SAXException;import javax.xml.parsers.DocumentBuilderFactory;
+              import javax.xml.parsers.DocumentBuilderFactory;
+              import javax.xml.parsers.DocumentBuilder;
               import javax.xml.parsers.ParserConfigurationException; // catching unsupported features
               import javax.xml.XMLConstants;
               
               class myDBFReader {
                   DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                  
                   {
                       String FEATURE = null;
                       try {
