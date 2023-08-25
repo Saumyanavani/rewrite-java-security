@@ -24,7 +24,6 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.xml.Assertions.xml;
 
-@Disabled
 public class DocumentBuilderFactoryXXETest implements RewriteTest{
 
     @Override
@@ -90,7 +89,6 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
     }
 
     @Test
-//    @Disabled("Temporarily")
     void factoryIsVulnerable() {
         //language=java
         rewriteRun(
@@ -123,6 +121,7 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
                           throw new IllegalStateException("ParserConfigurationException was thrown. The feature '"
                                   + FEATURE + "' is not supported by your XML processor.", e);
                       }
+
                   }
                   DocumentBuilder safebuilder = dbf.newDocumentBuilder();
               }
@@ -324,6 +323,7 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
                           throw new IllegalStateException("The feature '"
                                   + FEATURE + "' is not supported by your XML processor.", e);
                       }
+
                   }
                   DocumentBuilder safebuilder = dbf.newDocumentBuilder();
               }
