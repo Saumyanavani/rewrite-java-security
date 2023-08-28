@@ -158,58 +158,6 @@ public class DocumentBuilderFactoryXXETest implements RewriteTest{
     }
 
     @Test
-    @Disabled("Temporarily")
-    void factoryIsVulnerableButNeedsDTDs() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import javax.xml.parsers.DocumentBuilderFactory;
-              import javax.xml.parsers.ParserConfigurationException; // catching unsupported features
-              import javax.xml.XMLConstants;
-              
-              class myDBFReader {
-                  DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                  DocumentBuilder safebuilder = dbf.newDocumentBuilder();
-              }
-              """,
-            """
-              import javax.xml.parsers.DocumentBuilderFactory;
-              import javax.xml.parsers.ParserConfigurationException; // catching unsupported features
-              import javax.xml.XMLConstants;
-              
-              class myDBFReader {
-                  DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                  {
-                      String feature = null;
-                      try {
-                          feature = "http://apache.org/xml/features/disallow-doctype-decl";
-                          dbf.setFeature(feature, true);
-                          
-                          feature = "http://xml.org/sax/features/external-parameter-entities";
-                          dbf.setFeature(feature, false);
-                          
-                          feature = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
-                          dbf.setFeature(feature, false);
-                          
-                          dbf.setXIncludeAware(false);
-                          dbf.setExpandEntityReferences(false);
-                          
-                          dbf.setFeature(XMLConstants.feature_SECURE_PROCESSING, true);
-                          
-                      } catch (ParserConfigurationException e) {
-                          throw new IllegalStateException("ParserConfigurationException was thrown. The feature '"
-                                  + feature + "' is not supported by your XML processor.", e);
-                      }
-                  }
-                  DocumentBuilder safebuilder = dbf.newDocumentBuilder();
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void factoryIsSafeButNeedsDTDs() {
         //language=java
         rewriteRun(
